@@ -1,8 +1,0 @@
-prefix=/home/luis/Humanoide/CBGER_ws/install
-
-Name: visao
-Description: Description of visao
-Version: 0.0.0
-Cflags: -I${prefix}/include
-Libs: -L${prefix}/lib -lvisao
-Requires: cv_bridge image_transport roscpp rospy std_msgs

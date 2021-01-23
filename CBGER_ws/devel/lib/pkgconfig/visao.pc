@@ -1,8 +1,0 @@
-prefix=/home/luis/Humanoide/CBGER_ws/devel
-
-Name: visao
-Description: Description of visao
-Version: 0.0.0
-Cflags: -I/home/luis/Humanoide/CBGER_ws/src/visao/include
-Libs: -L${prefix}/lib -lvisao
-Requires: cv_bridge image_transport roscpp rospy std_msgs
