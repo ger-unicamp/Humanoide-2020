@@ -1,0 +1,2 @@
+visao
+-DCATKIN_DEVEL_PREFIX=/home/luis/Humanoide/CBGER_ws/devel -DCMAKE_INSTALL_PREFIX=/home/luis/Humanoide/CBGER_ws/install -G Unix Makefiles
