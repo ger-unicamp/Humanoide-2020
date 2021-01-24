@@ -10,7 +10,7 @@
 using namespace std;
 
 void imageCallback(const sensor_msgs::ImageConstPtr &msg)
-{
+{   
     try
     {
         cv::imshow("view", cv_bridge::toCvShare(msg, "bgr8")->image);
@@ -20,6 +20,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr &msg)
     {
         ROS_ERROR("Could not convert from '%s' to 'bgr8'.", msg->encoding.c_str());
     }
+
 }
 
 int main(int argc, char **argv)
