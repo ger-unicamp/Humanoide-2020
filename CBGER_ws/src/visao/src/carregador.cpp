@@ -12,49 +12,53 @@
 
 #include <cv_bridge/cv_bridge.h>
 #include "std_msgs/Bool.h"
+#include "std_msgs/Int32.h"
 
 using namespace std;
 
 bool verifica = false;
+
+// flag referente a cor identificada
+std_msgs::Int32 colorFlag;
 
 // funcao que envia um 'int' com base na cor detectada pela camera 
 // 0 - vermelho, 1 - verde, 2- nenhuma das duas
 int colorIdentify(const cv::Mat image)
 {
     // convertendo a imagem para o padrao 'hsv'
-    cv::Mat image_hsv;
-    cv::cvtColor(image, image_hsv, cv::COLOR_BGR2HSV);
+    cv::Mat imageHSV;
+    cv::cvtColor(image, imageHSV, cv::COLOR_BGR2HSV);
 
     // criando mascaras para identificar a cor vermelha
-    cv::Mat mask_red_1, mask_red_2;
-    cv::inRange(image_hsv, cv::Scalar(0, 120, 70), cv::Scalar(10, 255, 255), mask_red_1);
-    cv::inRange(image_hsv, cv::Scalar(170, 120, 70), cv::Scalar(180, 255, 255), mask_red_2);
-    const cv::Mat mask_red = mask_red_1 + mask_red_2;
+    cv::Mat maskRed1, maskRed2;
+    cv::inRange(imageHSV, cv::Scalar(0, 120, 70), cv::Scalar(10, 255, 255), maskRed1);
+    cv::inRange(imageHSV, cv::Scalar(170, 120, 70), cv::Scalar(180, 255, 255), maskRed2);
+    const cv::Mat maskRed = maskRed1 + maskRed2;
 
     // criando a mascara para identificar a cor verde
-    cv::Mat mask_green;
-    cv::inRange(image_hsv, cv::Scalar(36, 0, 0), cv::Scalar(86, 255, 255), mask_green);
+    cv::Mat maskGreen;
+    cv::inRange(imageHSV, cv::Scalar(36, 0, 0), cv::Scalar(86, 255, 255), maskGreen);
 
     // identificando os maiores e menores valores para cada mascara
-    double min_val_red, max_val_red, min_val_green, max_val_green;
-    cv::minMaxLoc(mask_red, &min_val_red, &max_val_red);
-    cv::minMaxLoc(mask_green, &min_val_green, &max_val_green);
+    double minvalRed, maxvalRed, minvalGreen, maxvalGreen;
+    cv::minMaxLoc(maskRed, &minvalRed, &maxvalRed);
+    cv::minMaxLoc(maskGreen, &minvalGreen, &maxvalGreen);
 
     // caso a cor seja vermelha
-    if ((min_val_red == 255) && (max_val_red == 255)) return 0;
+    if ((minvalRed == 255) && (maxvalRed == 255)) return 0;
 
     // caso a cor seja verde
-    else if ((min_val_green == 255) && (max_val_green == 255)) return 1;
+    else if ((minvalGreen == 255) && (maxvalGreen == 255)) return 1;
 
     // caso nao seja nenhuma das duas
     else return 2;
 }
 
-// funcao para enviar a flag pelo ros para a garra com base na cor identificada 
-void colorFlag(const cv::Mat image)
+// funcao para atualizar a flag enviada pelo ros para a garra com base na cor identificada 
+void colorUpdate(const cv::Mat image)
 {
     // identifica a cor, sendo '0' para o vermelho, '1' para o verde, e '2' nenhuma das duas
-    int flag = colorIdentify(image);
+    colorFlag.data = colorIdentify(image);
 
     return;
 }
@@ -70,13 +74,13 @@ void imageCallback(const sensor_msgs::ImageConstPtr &msg)
     {
         // pegamos a imagem do open cv atraves da mensagem enviada pelo ros
         // ela eh codificada inicialmente no padrao 'bgr8'
-        const cv::Mat image_bgr = cv_bridge::toCvShare(msg, "bgr8")->image;
+        const cv::Mat imageBGR = cv_bridge::toCvShare(msg, "bgr8")->image;
 
-        // agora, executamos a funcao que envia uma flag para a garra com base na cor presente na imagem
-        colorFlag(image_bgr);
+        // agora, executamos a funcao que atualiza a flag que eh enviada para a garra com base na cor presente na imagem
+        colorUpdate(imageBGR);
 
         // exibimos a imagem da camera na janela aberta
-        cv::imshow("view", image_bgr);
+        cv::imshow("view", imageBGR);
         cv::waitKey(30);
     }
 
@@ -96,7 +100,8 @@ int main(int argc, char **argv)
 
     string imageTopic = argv[1];
     string msgTopic = argv[2];
-    cout << "Nome dos tópicos: " << imageTopic << " " << msgTopic << endl;
+    string colorTopic = argv[3];
+    cout << "Nome dos tópicos: " << imageTopic << " " << msgTopic << " " << colorTopic << endl;
     
     string nodeName("CBGER_carregador");
     int _argc=0;
@@ -109,6 +114,8 @@ int main(int argc, char **argv)
     image_transport::ImageTransport it(nh);
     image_transport::Subscriber sub = it.subscribe(imageTopic.c_str(), 1, imageCallback);
     ros::Subscriber sub2 = nh.subscribe(msgTopic, 1, stopCallback);
+    ros::Publisher colorPub = nh.advertise<std_msgs::Int32>(colorTopic, 1);
+    colorPub.publish(colorFlag);
 
     while(ros::ok())
     {
