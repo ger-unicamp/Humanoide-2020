@@ -92,7 +92,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr &msg)
 
 int main(int argc, char **argv)
 {   
-    if (argc != 3)
+    if (argc != 4)
     {
         cout << "agrv must have image topic name" << endl;
         exit(1);
