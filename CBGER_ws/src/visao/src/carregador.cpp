@@ -1,18 +1,18 @@
 #include <iostream>
 #include <numeric>
-
 #include <cstdlib>
 
 #include <ros/ros.h>
 #include <image_transport/image_transport.h>
 
+#include <cv_bridge/cv_bridge.h>
+#include "std_msgs/Bool.h"
+#include "std_msgs/Int32.h"
+
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
-#include <cv_bridge/cv_bridge.h>
-#include "std_msgs/Bool.h"
-#include "std_msgs/Int32.h"
 
 using namespace std;
 
@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 {   
     if (argc != 4)
     {
-        cout << "argv deve possuir o nome de um tópico" << endl;
+        cout << "Argumentos inválidos. A execução do programa deve conter 3 tópicos: topico_imagem, topico_mensagem e topico_cor" << endl;
         exit(1);
     }
 
@@ -111,8 +111,10 @@ int main(int argc, char **argv)
 
     cv::namedWindow("Visão do Sensor");
     cv::startWindowThread();
+    
     image_transport::ImageTransport it(nh);
     image_transport::Subscriber subscriber_imagem = it.subscribe(topico_imagem.c_str(), 1, receber_imagem);
+    
     ros::Subscriber subscriber_mensagem = nh.subscribe(topico_mensagem, 1, receber_parada);
     ros::Publisher publisher_cor = nh.advertise<std_msgs::Int32>(topico_cor, 1);
     publisher_cor.publish(flag_cor);
