@@ -117,7 +117,6 @@ int main(int argc, char **argv)
     
     ros::Subscriber subscriber_mensagem = nh.subscribe(topico_mensagem, 1, receber_parada);
     ros::Publisher publisher_cor = nh.advertise<std_msgs::Int32>(topico_cor, 1);
-    publisher_cor.publish(flag_cor);
 
     while(ros::ok())
     {
@@ -126,6 +125,8 @@ int main(int argc, char **argv)
             cv::destroyWindow("Visão do Sensor");
             ros::shutdown();
         }
+
+        publisher_cor.publish(flag_cor);
         ros::spinOnce();
     }
 }
